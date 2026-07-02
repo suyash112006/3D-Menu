@@ -1,7 +1,6 @@
 const MenuItem = require('../models/MenuItem');
 const Restaurant = require('../models/Restaurant');
-const fs = require('fs');
-const path = require('path');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 // Helper to get user's restaurant
 const getRestaurantId = async (userId) => {
@@ -52,10 +51,12 @@ const createMenuItem = async (req, res) => {
 
     if (req.files) {
       if (req.files['image']) {
-        menuItemData.image = `/uploads/${req.files['image'][0].filename}`;
+        const result = await uploadToCloudinary(req.files['image'][0].buffer, false);
+        menuItemData.image = result.secure_url;
       }
       if (req.files['model3D']) {
-        menuItemData.model3D = `/uploads/${req.files['model3D'][0].filename}`;
+        const result = await uploadToCloudinary(req.files['model3D'][0].buffer, true);
+        menuItemData.model3D = result.secure_url;
       }
     }
 
@@ -103,10 +104,12 @@ const updateMenuItem = async (req, res) => {
 
     if (req.files) {
       if (req.files['image']) {
-        updateData.image = `/uploads/${req.files['image'][0].filename}`;
+        const result = await uploadToCloudinary(req.files['image'][0].buffer, false);
+        updateData.image = result.secure_url;
       }
       if (req.files['model3D']) {
-        updateData.model3D = `/uploads/${req.files['model3D'][0].filename}`;
+        const result = await uploadToCloudinary(req.files['model3D'][0].buffer, true);
+        updateData.model3D = result.secure_url;
       }
     }
 

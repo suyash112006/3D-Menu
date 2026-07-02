@@ -30,7 +30,12 @@ const updateRestaurant = async (req, res) => {
     }
 
     const { name, description, subtitle, phone, address, hours } = req.body;
-    const logo = req.file ? `/uploads/${req.file.filename}` : restaurant.logo;
+    let logo = restaurant.logo;
+    if (req.file) {
+      const { uploadToCloudinary } = require('../utils/cloudinary');
+      const result = await uploadToCloudinary(req.file.buffer, false);
+      logo = result.secure_url;
+    }
 
     restaurant.name = name || restaurant.name;
     restaurant.subtitle = subtitle !== undefined ? subtitle : restaurant.subtitle;
