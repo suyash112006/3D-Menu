@@ -1,6 +1,6 @@
 // Base API service to handle fetch requests and token injection
 
-const BASE_URL = '/api';
+const BASE_URL = (import.meta.env.VITE_API_URL || '') + '/api';
 
 const getHeaders = (isFormData = false) => {
   const token = localStorage.getItem('token');

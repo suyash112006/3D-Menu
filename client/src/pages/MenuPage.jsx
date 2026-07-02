@@ -170,7 +170,7 @@ const MenuPage = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch(`/api/restaurants/${restaurantSlug}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/restaurants/${restaurantSlug}`);
         if (!response.ok) throw new Error('Restaurant not found');
         const result = await response.json();
         setData(result);
