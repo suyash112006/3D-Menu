@@ -66,14 +66,14 @@ const ProfileManager = () => {
     setMessage(null);
     try {
       let logoUrl = profile.logo;
-      let logoPublicId = profile.logoPublicId;
+      let logoKey = profile.logoKey;
 
       if (logoFile) {
-        const { uploadFileDirectly } = await import('../../services/cloudinary');
+        const { uploadFileDirectly } = await import('../../services/storage');
         const uploadResult = await uploadFileDirectly(logoFile, 'image', profile.name ? `${profile.name}-logo` : 'logo');
         if (uploadResult) {
           logoUrl = uploadResult.secure_url;
-          logoPublicId = uploadResult.public_id;
+          logoKey = uploadResult.public_id;
         }
       }
 
@@ -84,12 +84,12 @@ const ProfileManager = () => {
         phone: profile.phone,
         address: profile.address,
         logo: logoUrl,
-        logoPublicId: logoPublicId
+        logoKey: logoKey
       };
 
       await api.put('/admin/restaurant', updateData);
       
-      setProfile({ ...profile, logo: logoUrl, logoPublicId });
+      setProfile({ ...profile, logo: logoUrl, logoKey });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: error.message || 'Failed to update profile' });

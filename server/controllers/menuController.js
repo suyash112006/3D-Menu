@@ -1,6 +1,6 @@
 const MenuItem = require('../models/MenuItem');
 const Restaurant = require('../models/Restaurant');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+
 
 // Helper to get user's restaurant
 const getRestaurantId = async (userId) => {
@@ -36,7 +36,7 @@ const createMenuItem = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    const { name, description, price, rating, category, isAvailable, tags, image, imagePublicId, model3D, model3DPublicId } = req.body;
+    const { name, description, price, rating, category, isAvailable, tags, image, imageKey, model3D, modelKey } = req.body;
     
     const menuItemData = {
       restaurant: restaurantId,
@@ -49,15 +49,15 @@ const createMenuItem = async (req, res) => {
       tags: typeof tags === 'string' ? JSON.parse(tags) : (tags || [])
     };
 
-    // Validate that the URL belongs to Cloudinary and this restaurant's folder
-    if (image && image.includes('cloudinary.com') && imagePublicId?.includes(`restaurants/${restaurantId}`)) {
+    // Validate that the key belongs to this restaurant's folder
+    if (image && imageKey?.includes(`restaurants/${restaurantId}`)) {
       menuItemData.image = image;
-      menuItemData.imagePublicId = imagePublicId;
+      menuItemData.imageKey = imageKey;
     }
     
-    if (model3D && model3D.includes('cloudinary.com') && model3DPublicId?.includes(`restaurants/${restaurantId}`)) {
+    if (model3D && modelKey?.includes(`restaurants/${restaurantId}`)) {
       menuItemData.model3D = model3D;
-      menuItemData.model3DPublicId = model3DPublicId;
+      menuItemData.modelKey = modelKey;
     }
 
     const item = await MenuItem.create(menuItemData);
@@ -87,9 +87,9 @@ const updateMenuItem = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    const { name, description, price, rating, category, isAvailable, tags, image, imagePublicId, model3D, model3DPublicId } = req.body;
+    const { name, description, price, rating, category, isAvailable, tags, image, imageKey, model3D, modelKey } = req.body;
     
-    const { deleteFromCloudinary } = require('../utils/cloudinary');
+    const { deleteFromR2 } = require('../utils/r2');
 
     const updateData = {
       name,
@@ -104,21 +104,21 @@ const updateMenuItem = async (req, res) => {
       updateData.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
     }
 
-    if (image && image.includes('cloudinary.com') && imagePublicId?.includes(`restaurants/${restaurantId}`)) {
+    if (image && imageKey?.includes(`restaurants/${restaurantId}`)) {
       updateData.image = image;
-      updateData.imagePublicId = imagePublicId;
+      updateData.imageKey = imageKey;
       // Delete old asset if different
-      if (imagePublicId !== item.imagePublicId) {
-        await deleteFromCloudinary(item.imagePublicId, 'image');
+      if (imageKey !== item.imageKey) {
+        await deleteFromR2(item.imageKey);
       }
     }
     
-    if (model3D && model3D.includes('cloudinary.com') && model3DPublicId?.includes(`restaurants/${restaurantId}`)) {
+    if (model3D && modelKey?.includes(`restaurants/${restaurantId}`)) {
       updateData.model3D = model3D;
-      updateData.model3DPublicId = model3DPublicId;
+      updateData.modelKey = modelKey;
       // Delete old asset if different
-      if (model3DPublicId !== item.model3DPublicId) {
-        await deleteFromCloudinary(item.model3DPublicId, 'raw');
+      if (modelKey !== item.modelKey) {
+        await deleteFromR2(item.modelKey);
       }
     }
 
@@ -153,9 +153,9 @@ const deleteMenuItem = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    const { deleteFromCloudinary } = require('../utils/cloudinary');
-    if (item.imagePublicId) await deleteFromCloudinary(item.imagePublicId, 'image');
-    if (item.model3DPublicId) await deleteFromCloudinary(item.model3DPublicId, 'raw');
+    const { deleteFromR2 } = require('../utils/r2');
+    if (item.imageKey) await deleteFromR2(item.imageKey);
+    if (item.modelKey) await deleteFromR2(item.modelKey);
 
     await MenuItem.findByIdAndDelete(req.params.id);
 

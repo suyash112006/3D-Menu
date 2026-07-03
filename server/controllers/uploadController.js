@@ -1,7 +1,7 @@
-const { generateSignature } = require('../utils/cloudinary');
+const { generatePresignedUrl } = require('../utils/r2');
 const Restaurant = require('../models/Restaurant');
 
-// @desc    Get Cloudinary signature for direct uploads
+// @desc    Get R2 upload presigned URL
 // @route   GET /api/admin/upload-signature
 // @access  Private
 const getUploadSignature = async (req, res) => {
@@ -16,14 +16,13 @@ const getUploadSignature = async (req, res) => {
 
     const folder = `restaurants/${restaurant._id}/${type === 'model' ? 'models' : 'images'}`;
     
-    // Generate an optional publicId (if a name is provided)
-    let publicId = null;
-    if (name) {
-      // Slugify the name
-      publicId = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Date.now();
-    }
+    let publicId = name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Date.now() : Date.now().toString();
+    const extension = type === 'model' ? '.glb' : '.jpg';
+    
+    const key = `${folder}/${publicId}${extension}`;
+    const contentType = type === 'model' ? 'model/gltf-binary' : 'image/jpeg';
 
-    const signatureData = generateSignature(folder, publicId);
+    const signatureData = await generatePresignedUrl(key, contentType);
 
     res.json(signatureData);
   } catch (error) {

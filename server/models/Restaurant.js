@@ -22,7 +22,7 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     default: 'no-photo.jpg'
   },
-  logoPublicId: {
+  logoKey: {
     type: String,
     default: null
   },

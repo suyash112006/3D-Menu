@@ -104,13 +104,13 @@ const MenuItemManager = () => {
       setUploadProgress(0);
       
       if (imageFile || modelFile) {
-        const { uploadFileDirectly } = await import('../../services/cloudinary');
+        const { uploadFileDirectly } = await import('../../services/storage');
         
         if (imageFile) {
           const result = await uploadFileDirectly(imageFile, 'image', formData.name);
           if (result) {
             payload.image = result.secure_url;
-            payload.imagePublicId = result.public_id;
+            payload.imageKey = result.public_id;
           }
         }
         
@@ -120,7 +120,7 @@ const MenuItemManager = () => {
           });
           if (result) {
             payload.model3D = result.secure_url;
-            payload.model3DPublicId = result.public_id;
+            payload.modelKey = result.public_id;
           }
         }
       }

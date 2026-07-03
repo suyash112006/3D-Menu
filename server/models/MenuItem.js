@@ -29,7 +29,7 @@ const menuItemSchema = new mongoose.Schema({
     type: String,
     default: 'no-photo.jpg'
   },
-  imagePublicId: {
+  imageKey: {
     type: String,
     default: null
   },
@@ -37,7 +37,7 @@ const menuItemSchema = new mongoose.Schema({
     type: String, // URL to .glb/.gltf file
     default: null
   },
-  model3DPublicId: {
+  modelKey: {
     type: String,
     default: null
   },
