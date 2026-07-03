@@ -28,7 +28,9 @@ const generateSignature = (folder, publicId = null) => {
     timestamp, 
     signature, 
     cloudName: process.env.CLOUDINARY_CLOUD_NAME, 
-    apiKey: process.env.CLOUDINARY_API_KEY 
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    folder,
+    publicId
   };
 };
 

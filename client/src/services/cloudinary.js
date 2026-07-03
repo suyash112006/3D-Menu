@@ -10,7 +10,7 @@ export const uploadFileDirectly = async (file, itemType = 'image', itemName = ''
     params.append('name', itemName);
   }
   
-  const { signature, timestamp, cloudName, apiKey } = await api.get(`/admin/upload-signature?${params.toString()}`);
+  const { signature, timestamp, cloudName, apiKey, folder, publicId } = await api.get(`/admin/upload-signature?${params.toString()}`);
   
   // 2. Prepare payload for Cloudinary
   const formData = new FormData();
@@ -18,6 +18,8 @@ export const uploadFileDirectly = async (file, itemType = 'image', itemName = ''
   formData.append('api_key', apiKey);
   formData.append('timestamp', timestamp);
   formData.append('signature', signature);
+  if (folder) formData.append('folder', folder);
+  if (publicId) formData.append('public_id', publicId);
   
   // 3. Post to Cloudinary (bypassing our own Vercel API limits)
   const resourceType = itemType === 'model' ? 'raw' : 'image';
