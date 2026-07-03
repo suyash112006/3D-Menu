@@ -1,5 +1,7 @@
-const app = require('../server/app');
 const mongoose = require('mongoose');
+mongoose.set('bufferCommands', false);
+
+const app = require('../server/app');
 
 const connectToDatabase = async () => {
   const readyState = mongoose.connection.readyState;

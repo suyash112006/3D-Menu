@@ -17,7 +17,13 @@ const apiRouter = express.Router();
 
 // Basic health check route
 apiRouter.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'API is running' });
+  res.json({ 
+    status: 'ok', 
+    message: 'API is running',
+    hasMongoUri: !!process.env.MONGO_URI,
+    hasMongodbUri: !!process.env.MONGODB_URI,
+    nodeEnv: process.env.NODE_ENV
+  });
 });
 
 // Routes
