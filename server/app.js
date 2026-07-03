@@ -13,15 +13,21 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 
+const apiRouter = express.Router();
+
 // Basic health check route
-app.get('/api/health', (req, res) => {
+apiRouter.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'API is running' });
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', publicRoutes);
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/', publicRoutes);
+
+// Mount API routes (Handles both local '/api' and Vercel serverless '/' where '/api' is stripped)
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // Static folder for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
