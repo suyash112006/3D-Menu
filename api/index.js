@@ -12,10 +12,7 @@ const connectToDatabase = async () => {
   console.log(`Connecting to MongoDB using URI: ${maskedUri}`);
   
   try {
-    const db = await mongoose.connect(rawUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const db = await mongoose.connect(rawUri);
     isConnected = db.connections[0].readyState;
     console.log('MongoDB connected');
   } catch (err) {
