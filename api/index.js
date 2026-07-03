@@ -43,10 +43,7 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('Cold start database connection failed:', err);
     return res.status(500).json({
-      message: 'Cold start database connection failed',
-      errorName: err.name,
-      errorMessage: err.message,
-      errorStack: err.stack
+      message: 'Database connection failed'
     });
   }
 };

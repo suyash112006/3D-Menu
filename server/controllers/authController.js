@@ -63,12 +63,7 @@ const register = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ 
-      message: 'Server Error', 
-      errorName: error.name,
-      errorMessage: error.message,
-      errorStack: error.stack 
-    });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -94,12 +89,7 @@ const login = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ 
-      message: 'Server Error', 
-      errorName: error.name,
-      errorMessage: error.message,
-      errorStack: error.stack 
-    });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
