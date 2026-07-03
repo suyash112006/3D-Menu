@@ -1,6 +1,6 @@
 import { api } from './api';
 
-export const uploadFileDirectly = async (file, itemType = 'image', itemName = '') => {
+export const uploadFileDirectly = async (file, itemType = 'image', itemName = '', onProgress = null) => {
   if (!file) return null;
   
   // 1. Get secure signature from backend
@@ -30,6 +30,7 @@ export const uploadFileDirectly = async (file, itemType = 'image', itemName = ''
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || 'Cloudinary upload failed');
     
+    if (onProgress) onProgress(100);
     return { secure_url: data.secure_url, public_id: data.public_id };
   }
   
@@ -61,6 +62,11 @@ export const uploadFileDirectly = async (file, itemType = 'image', itemName = ''
     
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || 'Cloudinary chunk upload failed');
+    
+    if (onProgress) {
+      const progress = Math.round((nextByte / file.size) * 100);
+      onProgress(progress);
+    }
     
     finalResponse = data;
     currentByte = nextByte;

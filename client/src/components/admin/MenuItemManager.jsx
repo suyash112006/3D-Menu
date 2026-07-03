@@ -13,6 +13,8 @@ const MenuItemManager = () => {
   const [currentModel, setCurrentModel] = useState({ url: null, name: '' });
   const [editingItem, setEditingItem] = useState(null);
   const [message, setMessage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -98,6 +100,9 @@ const MenuItemManager = () => {
     };
 
     try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      
       if (imageFile || modelFile) {
         const { uploadFileDirectly } = await import('../../services/cloudinary');
         
@@ -110,7 +115,9 @@ const MenuItemManager = () => {
         }
         
         if (modelFile) {
-          const result = await uploadFileDirectly(modelFile, 'model', formData.name);
+          const result = await uploadFileDirectly(modelFile, 'model', formData.name, (progress) => {
+            setUploadProgress(progress);
+          });
           if (result) {
             payload.model3D = result.secure_url;
             payload.model3DPublicId = result.public_id;
@@ -130,6 +137,9 @@ const MenuItemManager = () => {
     } catch (error) {
       console.error(error);
       setMessage({ type: 'error', text: error.message || 'Failed to save item' });
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -452,9 +462,14 @@ const MenuItemManager = () => {
                 )}
               </div>
 
-              <button type="submit" className="admin-submit-btn">
-                {editingItem ? 'Update Food' : 'Add Food'}
+              <button type="submit" className="admin-submit-btn" disabled={isUploading}>
+                {isUploading ? `Uploading... ${uploadProgress}%` : (editingItem ? 'Update Food' : 'Add Food')}
               </button>
+              {isUploading && (
+                <div style={{ width: '100%', backgroundColor: '#333', height: '6px', borderRadius: '3px', marginTop: '10px', overflow: 'hidden' }}>
+                  <div style={{ width: `${uploadProgress}%`, backgroundColor: '#ffcc00', height: '100%', transition: 'width 0.3s ease' }}></div>
+                </div>
+              )}
             </form>
           </div>
         </div>
