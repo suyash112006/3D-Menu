@@ -17,13 +17,7 @@ const apiRouter = express.Router();
 
 // Basic health check route
 apiRouter.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'API is running',
-    url: req.url,
-    originalUrl: req.originalUrl,
-    headers: req.headers
-  });
+  res.json({ status: 'ok', message: 'API is running' });
 });
 
 // Routes
