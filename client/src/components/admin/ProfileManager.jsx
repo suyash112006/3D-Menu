@@ -65,14 +65,31 @@ const ProfileManager = () => {
     setIsLoading(true);
     setMessage(null);
     try {
-      const formData = new FormData();
-      formData.append('name', profile.name);
-      formData.append('subtitle', profile.subtitle);
-      formData.append('description', profile.description);
-      formData.append('phone', profile.phone);
-      formData.append('address', profile.address);
-      if (logoFile) formData.append('logo', logoFile);
-      await api.put('/admin/restaurant', formData, true);
+      let logoUrl = profile.logo;
+      let logoPublicId = profile.logoPublicId;
+
+      if (logoFile) {
+        const { uploadFileDirectly } = await import('../../services/cloudinary');
+        const uploadResult = await uploadFileDirectly(logoFile, 'image', profile.name ? `${profile.name}-logo` : 'logo');
+        if (uploadResult) {
+          logoUrl = uploadResult.secure_url;
+          logoPublicId = uploadResult.public_id;
+        }
+      }
+
+      const updateData = {
+        name: profile.name,
+        subtitle: profile.subtitle,
+        description: profile.description,
+        phone: profile.phone,
+        address: profile.address,
+        logo: logoUrl,
+        logoPublicId: logoPublicId
+      };
+
+      await api.put('/admin/restaurant', updateData);
+      
+      setProfile({ ...profile, logo: logoUrl, logoPublicId });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: error.message || 'Failed to update profile' });

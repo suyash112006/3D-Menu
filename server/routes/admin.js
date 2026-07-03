@@ -1,19 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('../middleware/upload');
 const { protect } = require('../middleware/auth');
 const { getAdminRestaurant, updateRestaurant } = require('../controllers/restaurantController');
 
 const { getCategories, createCategory, updateCategory, deleteCategory } = require('../controllers/categoryController');
 const { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, toggleAvailability } = require('../controllers/menuController');
+const { getUploadSignature } = require('../controllers/uploadController');
 
 // All admin routes are protected
 router.use(protect);
 
+// Upload signature route
+router.get('/upload-signature', getUploadSignature);
+
 // Restaurant Profile routes
 router.route('/restaurant')
   .get(getAdminRestaurant)
-  .put(upload.single('logo'), updateRestaurant);
+  .put(updateRestaurant);
 
 // Category routes
 router.route('/categories')
@@ -26,9 +29,9 @@ router.route('/categories/:id')
 // Menu Item routes
 router.route('/menu-items')
   .get(getMenuItems)
-  .post(upload.fields([{ name: 'image', maxCount: 1 }, { name: 'model3D', maxCount: 1 }]), createMenuItem);
+  .post(createMenuItem);
 router.route('/menu-items/:id')
-  .put(upload.fields([{ name: 'image', maxCount: 1 }, { name: 'model3D', maxCount: 1 }]), updateMenuItem)
+  .put(updateMenuItem)
   .delete(deleteMenuItem);
 router.patch('/menu-items/:id/toggle', toggleAvailability);
 

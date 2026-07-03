@@ -22,6 +22,10 @@ const restaurantSchema = new mongoose.Schema({
     type: String,
     default: 'no-photo.jpg'
   },
+  logoPublicId: {
+    type: String,
+    default: null
+  },
   description: {
     type: String,
     maxlength: [500, 'Description can not be more than 500 characters']

@@ -29,8 +29,16 @@ const menuItemSchema = new mongoose.Schema({
     type: String,
     default: 'no-photo.jpg'
   },
+  imagePublicId: {
+    type: String,
+    default: null
+  },
   model3D: {
     type: String, // URL to .glb/.gltf file
+    default: null
+  },
+  model3DPublicId: {
+    type: String,
     default: null
   },
   isAvailable: {

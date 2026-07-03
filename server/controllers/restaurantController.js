@@ -29,12 +29,13 @@ const updateRestaurant = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    const { name, description, subtitle, phone, address, hours } = req.body;
-    let logo = restaurant.logo;
-    if (req.file) {
-      const { uploadToCloudinary } = require('../utils/cloudinary');
-      const result = await uploadToCloudinary(req.file.buffer, false);
-      logo = result.secure_url;
+    const { name, description, subtitle, phone, address, hours, logo, logoPublicId } = req.body;
+    
+    const { deleteFromCloudinary } = require('../utils/cloudinary');
+
+    // If there is a new logo provided and it's different from the old one, delete the old one
+    if (logoPublicId && restaurant.logoPublicId && logoPublicId !== restaurant.logoPublicId) {
+      await deleteFromCloudinary(restaurant.logoPublicId, 'image');
     }
 
     restaurant.name = name || restaurant.name;
@@ -45,7 +46,13 @@ const updateRestaurant = async (req, res) => {
     if (hours) {
       restaurant.hours = hours;
     }
-    restaurant.logo = logo;
+    if (logo) {
+      // Validate that the URL belongs to Cloudinary and this restaurant's folder
+      if (logo.includes('cloudinary.com') && logoPublicId.includes(`restaurants/${restaurant._id}`)) {
+        restaurant.logo = logo;
+        restaurant.logoPublicId = logoPublicId;
+      }
+    }
 
     await restaurant.save();
 

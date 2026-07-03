@@ -1,5 +1,4 @@
 const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier');
 require('dotenv').config();
 
 cloudinary.config({
@@ -8,25 +7,38 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadToCloudinary = (buffer, is3DModel = false) => {
-  return new Promise((resolve, reject) => {
-    // 3D models must be uploaded as raw resource type in cloudinary usually, 
-    // but cloudinary supports glb/gltf as image with format options or raw. 
-    // 'raw' works perfectly for delivering .glb files.
-    const resourceType = is3DModel ? 'raw' : 'image';
-    
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: resourceType, folder: '3d-menu' },
-      (error, result) => {
-        if (result) {
-          resolve(result);
-        } else {
-          reject(error);
-        }
-      }
-    );
-    streamifier.createReadStream(buffer).pipe(uploadStream);
-  });
+const generateSignature = (folder, publicId = null) => {
+  const timestamp = Math.round(new Date().getTime() / 1000);
+  
+  const params = {
+    timestamp,
+    folder,
+  };
+  
+  if (publicId) {
+    params.public_id = publicId;
+  }
+  
+  const signature = cloudinary.utils.api_sign_request(
+    params,
+    process.env.CLOUDINARY_API_SECRET
+  );
+  
+  return { 
+    timestamp, 
+    signature, 
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME, 
+    apiKey: process.env.CLOUDINARY_API_KEY 
+  };
 };
 
-module.exports = { cloudinary, uploadToCloudinary };
+const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
+  if (!publicId) return;
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  } catch (error) {
+    console.error('Error deleting from Cloudinary:', error);
+  }
+};
+
+module.exports = { cloudinary, generateSignature, deleteFromCloudinary };

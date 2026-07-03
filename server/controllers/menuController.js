@@ -36,7 +36,7 @@ const createMenuItem = async (req, res) => {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    const { name, description, price, rating, category, isAvailable, tags } = req.body;
+    const { name, description, price, rating, category, isAvailable, tags, image, imagePublicId, model3D, model3DPublicId } = req.body;
     
     const menuItemData = {
       restaurant: restaurantId,
@@ -46,18 +46,18 @@ const createMenuItem = async (req, res) => {
       price,
       rating,
       isAvailable: isAvailable !== undefined ? isAvailable : true,
-      tags: tags ? JSON.parse(tags) : []
+      tags: typeof tags === 'string' ? JSON.parse(tags) : (tags || [])
     };
 
-    if (req.files) {
-      if (req.files['image']) {
-        const result = await uploadToCloudinary(req.files['image'][0].buffer, false);
-        menuItemData.image = result.secure_url;
-      }
-      if (req.files['model3D']) {
-        const result = await uploadToCloudinary(req.files['model3D'][0].buffer, true);
-        menuItemData.model3D = result.secure_url;
-      }
+    // Validate that the URL belongs to Cloudinary and this restaurant's folder
+    if (image && image.includes('cloudinary.com') && imagePublicId?.includes(`restaurants/${restaurantId}`)) {
+      menuItemData.image = image;
+      menuItemData.imagePublicId = imagePublicId;
+    }
+    
+    if (model3D && model3D.includes('cloudinary.com') && model3DPublicId?.includes(`restaurants/${restaurantId}`)) {
+      menuItemData.model3D = model3D;
+      menuItemData.model3DPublicId = model3DPublicId;
     }
 
     const item = await MenuItem.create(menuItemData);
@@ -87,8 +87,10 @@ const updateMenuItem = async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    const { name, description, price, rating, category, isAvailable, tags } = req.body;
+    const { name, description, price, rating, category, isAvailable, tags, image, imagePublicId, model3D, model3DPublicId } = req.body;
     
+    const { deleteFromCloudinary } = require('../utils/cloudinary');
+
     const updateData = {
       name,
       description,
@@ -99,17 +101,24 @@ const updateMenuItem = async (req, res) => {
     };
     
     if (tags) {
-      updateData.tags = JSON.parse(tags);
+      updateData.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
     }
 
-    if (req.files) {
-      if (req.files['image']) {
-        const result = await uploadToCloudinary(req.files['image'][0].buffer, false);
-        updateData.image = result.secure_url;
+    if (image && image.includes('cloudinary.com') && imagePublicId?.includes(`restaurants/${restaurantId}`)) {
+      updateData.image = image;
+      updateData.imagePublicId = imagePublicId;
+      // Delete old asset if different
+      if (imagePublicId !== item.imagePublicId) {
+        await deleteFromCloudinary(item.imagePublicId, 'image');
       }
-      if (req.files['model3D']) {
-        const result = await uploadToCloudinary(req.files['model3D'][0].buffer, true);
-        updateData.model3D = result.secure_url;
+    }
+    
+    if (model3D && model3D.includes('cloudinary.com') && model3DPublicId?.includes(`restaurants/${restaurantId}`)) {
+      updateData.model3D = model3D;
+      updateData.model3DPublicId = model3DPublicId;
+      // Delete old asset if different
+      if (model3DPublicId !== item.model3DPublicId) {
+        await deleteFromCloudinary(item.model3DPublicId, 'raw');
       }
     }
 
@@ -143,6 +152,10 @@ const deleteMenuItem = async (req, res) => {
     if (item.restaurant.toString() !== restaurantId.toString()) {
       return res.status(401).json({ message: 'Not authorized' });
     }
+
+    const { deleteFromCloudinary } = require('../utils/cloudinary');
+    if (item.imagePublicId) await deleteFromCloudinary(item.imagePublicId, 'image');
+    if (item.model3DPublicId) await deleteFromCloudinary(item.model3DPublicId, 'raw');
 
     await MenuItem.findByIdAndDelete(req.params.id);
 

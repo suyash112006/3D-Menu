@@ -87,29 +87,49 @@ const MenuItemManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const data = new FormData();
-    data.append('name', formData.name);
-    data.append('description', formData.description);
-    data.append('price', formData.price);
-    data.append('rating', formData.rating);
-    data.append('category', formData.category);
-    data.append('isAvailable', formData.isAvailable);
-    
-    if (imageFile) data.append('image', imageFile);
-    if (modelFile) data.append('model3D', modelFile);
+    // Create copy of form data for API request
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      price: formData.price,
+      rating: formData.rating,
+      category: formData.category,
+      isAvailable: formData.isAvailable,
+    };
 
     try {
+      if (imageFile || modelFile) {
+        const { uploadFileDirectly } = await import('../../services/cloudinary');
+        
+        if (imageFile) {
+          const result = await uploadFileDirectly(imageFile, 'image', formData.name);
+          if (result) {
+            payload.image = result.secure_url;
+            payload.imagePublicId = result.public_id;
+          }
+        }
+        
+        if (modelFile) {
+          const result = await uploadFileDirectly(modelFile, 'model', formData.name);
+          if (result) {
+            payload.model3D = result.secure_url;
+            payload.model3DPublicId = result.public_id;
+          }
+        }
+      }
+
       if (editingItem) {
-        await api.put(`/admin/menu-items/${editingItem._id}`, data, true);
+        await api.put(`/admin/menu-items/${editingItem._id}`, payload);
         setMessage({ type: 'success', text: 'Item updated successfully' });
       } else {
-        await api.post('/admin/menu-items', data, true);
+        await api.post('/admin/menu-items', payload);
         setMessage({ type: 'success', text: 'Item added successfully' });
       }
       setIsModalOpen(false);
       fetchData();
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to save item' });
+      console.error(error);
+      setMessage({ type: 'error', text: error.message || 'Failed to save item' });
     }
   };
 
